@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的问卷 - 问卷小站</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/dashboard.html">问卷小站</a>
+      <div class="topbar-right">
+        <span id="currentUser"></span>
+        <button class="btn-small" id="logoutButton" type="button">退出</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="page-head">
+      <div>
+        <h1>我的问卷</h1>
+        <p>在这里创建、发布和查看自己做的问卷</p>
+      </div>
+      <button class="btn-primary" id="showCreateButton" type="button">新建问卷</button>
+    </div>
+
+    <section class="card hidden" id="createPanel">
+      <h2>新建问卷</h2>
+      <form id="createForm">
+        <label>
+          <span class="label-text">问卷标题</span>
+          <input type="text" id="newTitle" maxlength="100" required>
+        </label>
+        <label>
+          <span class="label-text">问卷说明</span>
+          <textarea id="newDescription" maxlength="1000" placeholder="简单说明一下这份问卷的用途"></textarea>
+        </label>
+        <div class="row">
+          <label>
+            <span class="label-text">截止时间（可不填）</span>
+            <input type="datetime-local" id="newDeadline">
+          </label>
+          <div>
+            <label class="check-line">
+              <input type="checkbox" id="newAnonymous">
+              允许匿名填写
+            </label>
+            <label class="check-line">
+              <input type="checkbox" id="newMultiple" checked>
+              允许同一个人填写多次
+            </label>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn-primary" type="submit">创建并添加题目</button>
+          <button type="button" id="cancelCreateButton">取消</button>
+        </div>
+        <p class="error" id="createError"></p>
+      </form>
+    </section>
+
+    <section>
+      <div class="survey-list" id="surveyList">
+        <div class="empty">正在加载...</div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>

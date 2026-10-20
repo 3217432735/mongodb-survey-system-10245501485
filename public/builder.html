@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>编辑问卷 - 问卷小站</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/dashboard.html">问卷小站</a>
+      <div class="topbar-right">
+        <span id="currentUser"></span>
+        <button class="btn-small" id="logoutButton" type="button">退出</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="page-head">
+      <div>
+        <p><a href="/dashboard.html">← 返回我的问卷</a></p>
+        <h1 id="surveyTitle">加载中...</h1>
+        <p id="surveySubtitle"></p>
+      </div>
+      <div class="actions" id="headActions"></div>
+    </div>
+
+    <section class="card" id="settingsCard">
+      <h2>问卷设置</h2>
+      <form id="settingsForm">
+        <label>
+          <span class="label-text">问卷标题</span>
+          <input type="text" id="settingTitle" maxlength="100" required>
+        </label>
+        <label>
+          <span class="label-text">问卷说明</span>
+          <textarea id="settingDescription" maxlength="1000"></textarea>
+        </label>
+        <div class="row">
+          <label>
+            <span class="label-text">截止时间（可不填）</span>
+            <input type="datetime-local" id="settingDeadline">
+          </label>
+          <div>
+            <label class="check-line">
+              <input type="checkbox" id="settingAnonymous">
+              允许匿名填写
+            </label>
+            <label class="check-line">
+              <input type="checkbox" id="settingMultiple">
+              允许同一个人填写多次
+            </label>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn-primary" type="submit">保存设置</button>
+          <span class="hint" id="settingsMessage"></span>
+        </div>
+      </form>
+      <div class="inline-note hidden" id="lockedNote">
+        问卷已经发布，题目和基本设置不能再修改。这样可以保证已经收到的答案和题目对应。
+      </div>
+    </section>
+
+    <section class="grid-two" id="editorArea">
+      <div class="card">
+        <h2 id="questionFormTitle">添加题目</h2>
+        <form id="questionForm">
+          <label>
+            <span class="label-text">题目标题</span>
+            <input type="text" id="questionTitle" maxlength="200" required>
+          </label>
+          <div class="row">
+            <label>
+              <span class="label-text">题目类型</span>
+              <select id="questionType">
+                <option value="single">单选题</option>
+                <option value="multiple">多选题</option>
+                <option value="text">文本填空题</option>
+                <option value="number">数字填空题</option>
+              </select>
+            </label>
+            <label class="check-line" style="margin-bottom: 14px;">
+              <input type="checkbox" id="questionRequired">
+              必答题
+            </label>
+          </div>
+
+          <div id="choiceFields">
+            <label>
+              <span class="label-text">选项（一行写一个）</span>
+              <textarea id="questionOptions" placeholder="男&#10;女&#10;其他"></textarea>
+            </label>
+          </div>
+
+          <div id="multipleFields" class="hidden">
+            <div class="row">
+              <label>
+                <span class="label-text">最少选择</span>
+                <input type="number" id="minChoices" min="0" placeholder="不限">
+              </label>
+              <label>
+                <span class="label-text">最多选择</span>
+                <input type="number" id="maxChoices" min="1" placeholder="不限">
+              </label>
+              <label>
+                <span class="label-text">必须选择</span>
+                <input type="number" id="exactChoices" min="1" placeholder="不限制">
+              </label>
+            </div>
+            <p class="hint">三个数量限制填一个或两个即可，填了“必须选择”时会忽略前两项。</p>
+          </div>
+
+          <div id="textFields" class="hidden">
+            <div class="row">
+              <label>
+                <span class="label-text">最少字数</span>
+                <input type="number" id="minLength" min="0" value="0">
+              </label>
+              <label>
+                <span class="label-text">最多字数</span>
+                <input type="number" id="maxLength" min="1" value="500">
+              </label>
+            </div>
+          </div>
+
+          <div id="numberFields" class="hidden">
+            <div class="row">
+              <label>
+                <span class="label-text">最小值</span>
+                <input type="number" id="minValue" step="any" placeholder="不限">
+              </label>
+              <label>
+                <span class="label-text">最大值</span>
+                <input type="number" id="maxValue" step="any" placeholder="不限">
+              </label>
+            </div>
+            <label class="check-line">
+              <input type="checkbox" id="integerOnly">
+              只能填写整数
+            </label>
+          </div>
+
+          <div id="jumpFields" class="hidden">
+            <h3 style="margin-top: 4px;">跳转规则</h3>
+            <div id="ruleList"></div>
+            <div class="actions">
+              <button type="button" class="btn-small" id="addRuleButton">添加规则</button>
+            </div>
+            <p class="hint">按顺序匹配，第一条满足的规则生效。只能跳到后面的题目。</p>
+          </div>
+
+          <div class="actions" style="margin-top: 16px;">
+            <button class="btn-primary" type="submit" id="saveQuestionButton">保存题目</button>
+            <button type="button" id="cancelEditButton" class="hidden">取消编辑</button>
+          </div>
+          <p class="error" id="questionError"></p>
+        </form>
+        <div class="inline-note hidden" id="newQuestionNote">
+          新题保存后，可以在右侧题目列表点“编辑”，再设置它后面的跳转。
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>题目列表 <span id="questionCountText" class="hint"></span></h2>
+        <div id="questionList"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/builder.js"></script>
+</body>
+</html>

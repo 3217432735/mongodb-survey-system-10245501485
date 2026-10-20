@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>统计结果 - 问卷小站</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/dashboard.html">问卷小站</a>
+      <div class="topbar-right">
+        <span id="currentUser"></span>
+        <a href="/dashboard.html">我的问卷</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="page-head">
+      <div>
+        <p><a href="/dashboard.html">← 返回我的问卷</a></p>
+        <h1 id="statsTitle">统计结果</h1>
+        <p id="statsSubtitle"></p>
+      </div>
+      <div class="actions" id="statsActions"></div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-small">
+        <div class="num" id="totalResponses">0</div>
+        <div class="label">共收到答卷</div>
+      </div>
+      <div class="stat-small">
+        <div class="num" id="questionTotal">0</div>
+        <div class="label">题目数量</div>
+      </div>
+      <div class="stat-small">
+        <div class="num" id="averageAnswered">0</div>
+        <div class="label">平均每题回答人数</div>
+      </div>
+    </div>
+
+    <div id="statsList">
+      <div class="card empty">正在统计...</div>
+    </div>
+  </main>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/stats.js"></script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{
+  "name": "survey-mongodb",
+  "version": "1.0.0",
+  "private": true,
+  "description": "当代数据管理系统大作业一：基于 MongoDB 的在线问卷系统",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "node --watch app.js",
+    "seed": "node scripts/seed-demo.js",
+    "test": "node --test test/api.test.js",
+    "screenshots": "node scripts/screenshots.js"
+  },
+  "dependencies": {
+    "connect-mongo": "^5.1.0",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "mongodb": "^6.12.0"
+  }
+}

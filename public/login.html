@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>登录 - 问卷小站</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="login-page">
+    <div class="login-box">
+      <h1>问卷小站</h1>
+      <p class="sub">基于 MongoDB 的在线问卷系统</p>
+      <form id="loginForm">
+        <label>
+          <span class="label-text">用户名</span>
+          <input type="text" id="username" autocomplete="username" required>
+        </label>
+        <label>
+          <span class="label-text">密码</span>
+          <input type="password" id="password" autocomplete="current-password" required>
+        </label>
+        <button class="btn-primary" type="submit">登录</button>
+        <p class="error" id="error"></p>
+      </form>
+      <div class="login-links">还没有账号？<a href="/register.html">注册一个</a></div>
+    </div>
+  </div>
+  <script src="/js/common.js"></script>
+  <script src="/js/login.js"></script>
+</body>
+</html>

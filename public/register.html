@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>注册 - 问卷小站</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="login-page">
+    <div class="login-box">
+      <h1>创建账号</h1>
+      <p class="sub">注册后就可以创建和填写问卷</p>
+      <form id="registerForm">
+        <label>
+          <span class="label-text">用户名</span>
+          <input type="text" id="username" autocomplete="username" required>
+          <span class="hint">3 到 20 位，只能使用字母、数字和下划线</span>
+        </label>
+        <label>
+          <span class="label-text">密码</span>
+          <input type="password" id="password" autocomplete="new-password" required>
+          <span class="hint">至少 6 位</span>
+        </label>
+        <label>
+          <span class="label-text">确认密码</span>
+          <input type="password" id="password2" autocomplete="new-password" required>
+        </label>
+        <button class="btn-primary" type="submit">注册</button>
+        <p class="error" id="error"></p>
+      </form>
+      <div class="login-links">已经有账号？<a href="/login.html">直接登录</a></div>
+    </div>
+  </div>
+  <script src="/js/common.js"></script>
+  <script src="/js/login.js"></script>
+</body>
+</html>

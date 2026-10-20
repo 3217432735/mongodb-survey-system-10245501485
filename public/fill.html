@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>填写问卷 - 问卷小站</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/dashboard.html">问卷小站</a>
+      <div class="topbar-right">
+        <span id="currentUser"></span>
+        <a href="/dashboard.html">我的问卷</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="fill-wrap">
+    <div id="loading" class="card empty">正在加载问卷...</div>
+
+    <section id="accessMessage" class="card hidden">
+      <h2 id="accessTitle">无法填写</h2>
+      <p id="accessText"></p>
+      <a class="button" href="/dashboard.html">返回首页</a>
+    </section>
+
+    <section id="intro" class="hidden">
+      <div class="fill-head">
+        <h1 id="fillTitle"></h1>
+        <div class="fill-desc" id="fillDescription"></div>
+      </div>
+      <div class="card">
+        <div class="survey-meta" id="fillMeta"></div>
+        <label class="check-line hidden" id="anonymousLine">
+          <input type="checkbox" id="anonymousCheck">
+          匿名提交（不记录我的用户名）
+        </label>
+        <button class="btn-primary" id="startButton" type="button">开始填写</button>
+      </div>
+    </section>
+
+    <section id="fillArea" class="hidden">
+      <div class="progress-line"><div id="progressBar"></div></div>
+      <div class="progress-text" id="progressText"></div>
+      <div class="fill-question" id="questionCard"></div>
+      <p class="error" id="fillError"></p>
+      <div class="fill-nav">
+        <button id="backButton" type="button">上一题</button>
+        <button class="btn-primary" id="nextButton" type="button">下一题</button>
+      </div>
+    </section>
+
+    <section id="doneBox" class="done-box hidden">
+      <div class="big">✓</div>
+      <h2 id="doneTitle">提交成功</h2>
+      <p id="doneText" class="hint"></p>
+      <div class="actions" style="justify-content:center;margin-top:20px;">
+        <button class="btn-primary hidden" id="againButton" type="button">再填一份</button>
+        <a class="button" href="/dashboard.html">返回首页</a>
+      </div>
+    </section>
+  </main>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/fill.js"></script>
+</body>
+</html>
