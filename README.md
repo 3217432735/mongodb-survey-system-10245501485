@@ -32,8 +32,9 @@ npm start
 
 打开 <http://localhost:3000>。
 
-管理页里的“填写链接”会自动使用电脑当前的局域网 IP。例如电脑访问 `localhost` 时，
-复制出来的链接仍然会是 `http://192.168.x.x:3000/survey/...`，可以直接发给同一局域网内的手机。
+管理页里的“填写链接”会自动使用项目当前配置的公网地址，例如
+`https://stores-merit-tutorials-reprints.trycloudflare.com/survey/...`。
+填写者不需要与创建者连接同一个局域网，可直接通过互联网打开。
 
 演示数据里的账号：
 
@@ -51,7 +52,7 @@ $env:MONGODB_URI="mongodb://127.0.0.1:27017"
 $env:MONGODB_DB="survey_system"
 $env:PORT="3000"
 # 可选，使用固定公网域名或隧道时设置
-$env:PUBLIC_ORIGIN="https://your-domain.example"
+$env:PUBLIC_ORIGIN="https://stores-merit-tutorials-reprints.trycloudflare.com"
 ```
 
 ## 测试
@@ -85,8 +86,8 @@ npm test
 3. 问卷发布后不能修改题目，保证已经收到的答案还能和原题目对应。
 4. 匿名答卷不保存 `respondent_id` 和用户名。如果问卷限制每人填一次，会保存一个由用户编号和问卷编号算出的 HMAC 值，只用来判重，不能直接看出是谁。
 5. 统计结果是在查询时用 MongoDB 聚合管道实时计算的，没有另外存一份统计表。
-6. `/api/app-info` 会根据当前网络接口生成可分享地址。从 `localhost` 打开时自动替换成局域网 IP；
-   从公网隧道打开时保留隧道域名。
+6. `/api/app-info` 优先生成配置好的公网地址。当前默认使用
+   `https://stores-merit-tutorials-reprints.trycloudflare.com`，其他网络可以直接访问填写链接。
 
 ## 临时公网访问
 

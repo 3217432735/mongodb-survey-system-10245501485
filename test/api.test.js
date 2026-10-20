@@ -70,9 +70,12 @@ test("基于 MongoDB 的问卷系统接口测试", async (t) => {
   let publicId;
   let questions;
 
-  await t.test("自动生成局域网分享地址", async () => {
+  await t.test("自动生成公网分享地址", async () => {
     const data = await alice.get("/api/app-info");
-    assert.match(data.share_origin, /^http:\/\/\d{1,3}(\.\d{1,3}){3}:\d+$/);
+    assert.equal(
+      data.share_origin,
+      "https://stores-merit-tutorials-reprints.trycloudflare.com"
+    );
     assert.doesNotMatch(data.share_origin, /localhost|127\.0\.0\.1/);
   });
 

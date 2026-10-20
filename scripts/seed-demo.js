@@ -2,7 +2,6 @@ const { MongoClient, ObjectId } = require("mongodb");
 const config = require("../src/config");
 const { hashPassword } = require("../src/password");
 const { respondentKey } = require("../src/helpers");
-const { getLanAddress } = require("../src/network");
 
 async function ensureUser(users, username, password, id) {
   const exists = await users.findOne({ username });
@@ -528,10 +527,13 @@ async function main() {
   console.log("演示数据已经写入。");
   console.log("登录账号：demo / demo123");
   console.log("主问卷链接：http://localhost:" + config.port + "/survey/campus26");
-  const lanAddress = getLanAddress();
-  if (lanAddress) {
-    console.log("手机填写链接：http://" + lanAddress + ":" + config.port + "/survey/campus26");
-  }
+  const publicBase =
+    config.publicOrigin || "http://localhost:" + config.port;
+  console.log(
+    "公网填写链接：" +
+      publicBase.replace(/\/+$/, "") +
+      "/survey/campus26"
+  );
   console.log("草稿问卷链接：http://localhost:" + config.port + "/builder.html?id=" + surveyDraftId);
   await client.close();
 }

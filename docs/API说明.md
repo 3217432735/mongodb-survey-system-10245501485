@@ -41,17 +41,16 @@
 
 登录失败统一返回“用户名或密码错误”，不区分是用户名不存在还是密码错。
 
-`/api/app-info` 用于生成问卷公开链接。电脑通过 `localhost` 访问时，它会返回局域网地址，
-例如：
+`/api/app-info` 用于生成问卷公开链接。电脑通过 `localhost` 访问时，它会返回当前配置的
+公网地址，例如：
 
 ```json
 {
-  "share_origin": "http://192.168.3.13:3000"
+  "share_origin": "https://stores-merit-tutorials-reprints.trycloudflare.com"
 }
 ```
 
-如果通过公网隧道或域名访问，则返回对应域名。也可以在环境变量里设置 `PUBLIC_ORIGIN`
-强制使用固定地址。
+填写者无需与创建者处于同一局域网。也可以在环境变量里设置 `PUBLIC_ORIGIN` 替换默认地址。
 
 ## 3. 问卷管理接口
 

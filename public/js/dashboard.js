@@ -67,7 +67,7 @@
         ' <button class="btn-small" data-action="copy" data-url="' +
         escapeHtml(publicAddress) +
         '" type="button">复制</button>' +
-        '<div class="hint">手机填写时，手机需要和电脑连接同一个局域网。</div></div>'
+        '<div class="hint">填写链接使用公网地址，其他网络可直接打开。</div></div>'
       : "";
 
     const settings = [];
