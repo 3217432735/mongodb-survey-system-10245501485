@@ -9,6 +9,8 @@ const { getLanAddress, getShareOrigin } = require("./src/network");
 const createAuthRouter = require("./src/routes/auth");
 const createSurveyRouter = require("./src/routes/surveys");
 const createFillRouter = require("./src/routes/fill");
+const createLibraryRouter = require("./src/routes/library");
+const { migrateLegacyQuestions } = require("./src/library");
 
 async function createServer(options = {}) {
   const mongoUri = options.mongoUri || config.mongoUri;
@@ -20,6 +22,7 @@ async function createServer(options = {}) {
   await client.connect();
   const db = client.db(dbName);
   await ensureIndexes(db);
+  await migrateLegacyQuestions(db);
 
   const app = express();
   app.disable("x-powered-by");
@@ -56,6 +59,7 @@ async function createServer(options = {}) {
     });
   });
   app.use("/api/auth", createAuthRouter(db));
+  app.use("/api", createLibraryRouter(db));
   app.use("/api", createSurveyRouter(db));
   app.use("/api", createFillRouter(db));
 

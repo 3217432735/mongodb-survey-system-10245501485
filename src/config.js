@@ -1,5 +1,5 @@
 const DEFAULT_PUBLIC_ORIGIN =
-  "https://stores-merit-tutorials-reprints.trycloudflare.com";
+  "https://livecam-reduced-calculators-stockholm.trycloudflare.com";
 
 module.exports = {
   port: Number(process.env.PORT || 3000),

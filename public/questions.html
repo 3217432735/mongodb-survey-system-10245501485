@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>题目库 - 问卷小站</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/dashboard.html">问卷小站</a>
+      <div class="topbar-right">
+        <a href="/dashboard.html">我的问卷</a>
+        <span id="currentUser"></span>
+        <button class="btn-small" id="logoutButton" type="button">退出</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="page-head">
+      <div>
+        <h1>题目库</h1>
+        <p>保存可重复使用的题目，共享给其他用户，并管理历史版本。</p>
+      </div>
+    </div>
+
+    <section class="grid-two">
+      <div class="card">
+        <h2 id="libraryFormTitle">新建题库题目</h2>
+        <form id="libraryForm">
+          <label>
+            <span class="label-text">题目标题</span>
+            <input type="text" id="libraryTitle" maxlength="200" required>
+          </label>
+          <div class="row">
+            <label>
+              <span class="label-text">题目类型</span>
+              <select id="libraryType">
+                <option value="single">单选题</option>
+                <option value="multiple">多选题</option>
+                <option value="text">文本填空题</option>
+                <option value="number">数字填空题</option>
+              </select>
+            </label>
+            <label class="check-line" style="margin-bottom: 14px;">
+              <input type="checkbox" id="libraryRequired">
+              必答题
+            </label>
+          </div>
+
+          <div id="libraryChoiceFields">
+            <label>
+              <span class="label-text">选项（一行写一个）</span>
+              <textarea id="libraryOptions" placeholder="男&#10;女&#10;其他"></textarea>
+            </label>
+          </div>
+
+          <div id="libraryMultipleFields" class="hidden">
+            <div class="row">
+              <label>
+                <span class="label-text">最少选择</span>
+                <input type="number" id="libraryMinChoices" min="0" placeholder="不限">
+              </label>
+              <label>
+                <span class="label-text">最多选择</span>
+                <input type="number" id="libraryMaxChoices" min="1" placeholder="不限">
+              </label>
+              <label>
+                <span class="label-text">必须选择</span>
+                <input type="number" id="libraryExactChoices" min="1" placeholder="不限制">
+              </label>
+            </div>
+          </div>
+
+          <div id="libraryTextFields" class="hidden">
+            <div class="row">
+              <label>
+                <span class="label-text">最少字数</span>
+                <input type="number" id="libraryMinLength" min="0" value="0">
+              </label>
+              <label>
+                <span class="label-text">最多字数</span>
+                <input type="number" id="libraryMaxLength" min="1" value="500">
+              </label>
+            </div>
+          </div>
+
+          <div id="libraryNumberFields" class="hidden">
+            <div class="row">
+              <label>
+                <span class="label-text">最小值</span>
+                <input type="number" id="libraryMinValue" step="any" placeholder="不限">
+              </label>
+              <label>
+                <span class="label-text">最大值</span>
+                <input type="number" id="libraryMaxValue" step="any" placeholder="不限">
+              </label>
+            </div>
+            <label class="check-line">
+              <input type="checkbox" id="libraryIntegerOnly">
+              只能填写整数
+            </label>
+          </div>
+
+          <div class="actions">
+            <button class="btn-primary" type="submit" id="librarySaveButton">保存到题库</button>
+            <button class="btn-small hidden" type="button" id="libraryCancelButton">取消编辑</button>
+          </div>
+          <p class="error" id="libraryError"></p>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>我的题目与共享题目</h2>
+        <div id="libraryList" class="survey-list">
+          <div class="empty">正在加载...</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card hidden" id="detailPanel">
+      <div class="question-block-head">
+        <h2 id="detailTitle">题目详情</h2>
+        <button class="btn-small" type="button" id="detailCloseButton">关闭</button>
+      </div>
+      <div id="detailContent"></div>
+    </section>
+  </main>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/library.js"></script>
+</body>
+</html>

@@ -42,6 +42,16 @@ async function main() {
     fullPage: false
   });
 
+  await page.goto(base + "/questions.html", {
+    waitUntil: "networkidle"
+  });
+  await page.waitForSelector("#libraryList .survey-item");
+  await page.waitForTimeout(500);
+  await page.screenshot({
+    path: path.join(outDir, "05-library.png"),
+    fullPage: true
+  });
+
   await page.goto(
     base + "/builder.html?id=66f100000000000000000002",
     { waitUntil: "networkidle" }

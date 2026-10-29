@@ -12,12 +12,62 @@
 
   let survey = null;
   let questions = [];
+  let libraryQuestions = [];
   let editingId = null;
 
   const $ = (id) => document.getElementById(id);
   const listBox = $("questionList");
   const form = $("questionForm");
   const errorBox = $("questionError");
+
+  function renderLibraryVersionSelect() {
+    const root = libraryQuestions.find(
+      (item) => item.id === $("libraryQuestionSelect").value
+    );
+    const select = $("libraryVersionSelect");
+    if (!root) {
+      select.innerHTML = "";
+      return;
+    }
+    select.innerHTML = root.versions
+      .map(
+        (version) =>
+          '<option value="' +
+          version.id +
+          '"' +
+          (version.id === root.current_version.id ? " selected" : "") +
+          ">v" +
+          version.version_no +
+          "　" +
+          escapeHtml(version.title) +
+          (version.id === root.current_version.id ? "（当前）" : "") +
+          "</option>"
+      )
+      .join("");
+  }
+
+  async function loadLibraryPicker() {
+    if (!survey || survey.status !== "draft") return;
+    const data = await api("/api/library/questions?library_only=1");
+    libraryQuestions = data.questions;
+    $("libraryQuestionSelect").innerHTML =
+      '<option value="">请选择题库中的题目</option>' +
+      libraryQuestions
+        .map(
+          (root) =>
+            '<option value="' +
+            root.id +
+            '">' +
+            escapeHtml(root.current_version.title) +
+            "（v" +
+            root.current_version.version_no +
+            "，" +
+            (root.can_edit ? "我创建的" : "共享给我") +
+            "）</option>"
+        )
+        .join("");
+    renderLibraryVersionSelect();
+  }
 
   function typeFields() {
     const type = $("questionType").value;
@@ -214,6 +264,7 @@
     $("settingAnonymous").checked = survey.allow_anonymous;
     $("settingMultiple").checked = survey.allow_multiple;
     $("editorArea").classList.toggle("hidden", !isDraft);
+    $("libraryPickerCard").classList.toggle("hidden", !isDraft);
   }
 
   function ruleSummary(question) {
@@ -307,6 +358,17 @@
             : "";
         const constraints = constraintSummary(question);
         const rules = ruleSummary(question);
+        const libraryTag = question.library_root_id
+          ? '<span class="status draft">题库 v' +
+            (question.library_version_no ?? "-") +
+            "</span>"
+          : question.derived_from_library_version_id
+            ? '<span class="status closed">独立副本</span>'
+            : "";
+        const canAddToLibrary =
+          question.library_root_id &&
+          question.library_root_owner_id === user.id &&
+          !question.library_in_library;
         return (
           '<div class="question-block">' +
           '<div class="question-block-head">' +
@@ -316,6 +378,8 @@
           " 题　" +
           typeName(question.type) +
           (question.required ? "　<span style=\"color:#b4473d\">必答</span>" : "　选答") +
+          "　" +
+          libraryTag +
           "</div>" +
           '<h3 class="question-title">' +
           escapeHtml(question.title) +
@@ -326,6 +390,11 @@
           '<button class="btn-small" data-edit="' +
           question.id +
           '" type="button">编辑</button>' +
+          (canAddToLibrary
+            ? '<button class="btn-small" data-add-library="' +
+              question.library_root_id +
+              '" type="button">加入题库</button>'
+            : "") +
           (question.order === questions.length
             ? '<button class="btn-small btn-danger" data-delete="' +
               question.id +
@@ -364,6 +433,8 @@
     $("saveQuestionButton").textContent = "保存题目";
     $("cancelEditButton").classList.add("hidden");
     $("newQuestionNote").classList.remove("hidden");
+    $("libraryVersionFields").classList.add("hidden");
+    $("createLibraryVersion").checked = false;
     typeFields();
   }
 
@@ -391,6 +462,16 @@
     $("saveQuestionButton").textContent = "保存修改";
     $("cancelEditButton").classList.remove("hidden");
     $("newQuestionNote").classList.add("hidden");
+    $("libraryVersionFields").classList.toggle(
+      "hidden",
+      !question.library_root_id
+    );
+    $("libraryVersionInfo").textContent = question.library_root_id
+      ? "当前关联题库版本 v" +
+        (question.library_version_no ?? "-") +
+        "。如果修改题干、选项或校验条件，可选择是否生成新版本。"
+      : "";
+    $("createLibraryVersion").checked = false;
     typeFields();
     for (const rule of question.jump_rules || []) addRuleRow(rule);
     window.scrollTo({ top: $("settingsCard").offsetHeight + 60, behavior: "smooth" });
@@ -403,7 +484,10 @@
       type,
       required: $("questionRequired").checked,
       options: [],
-      jump_rules: editingId ? collectRules() : []
+      jump_rules: editingId ? collectRules() : [],
+      create_library_version: editingId
+        ? $("createLibraryVersion").checked
+        : false
     };
     if (type === "single" || type === "multiple") {
       body.options = optionsFromTextarea();
@@ -433,6 +517,7 @@
     renderHead();
     renderSettings();
     renderQuestions();
+    await loadLibraryPicker();
     if (survey.status !== "draft") {
       $("editorArea").classList.add("hidden");
     }
@@ -480,11 +565,55 @@
   });
   $("addRuleButton").addEventListener("click", () => addRuleRow(null));
   $("cancelEditButton").addEventListener("click", resetForm);
+  $("libraryQuestionSelect").addEventListener(
+    "change",
+    renderLibraryVersionSelect
+  );
+  $("addLibraryQuestionButton").addEventListener("click", async () => {
+    const rootId = $("libraryQuestionSelect").value;
+    const versionId = $("libraryVersionSelect").value;
+    if (!rootId || !versionId) {
+      alert("请先选择题库中的题目和版本。");
+      return;
+    }
+    try {
+      await api("/api/surveys/" + surveyId + "/questions/from-library", {
+        method: "POST",
+        body: JSON.stringify({
+          root_id: rootId,
+          version_id: versionId
+        })
+      });
+      await loadSurvey();
+      resetForm();
+    } catch (error) {
+      alert(error.message);
+    }
+  });
 
   listBox.addEventListener("click", async (event) => {
     const editButton = event.target.closest("button[data-edit]");
     if (editButton) {
       editQuestion(editButton.dataset.edit);
+      return;
+    }
+    const addLibraryButton = event.target.closest(
+      "button[data-add-library]"
+    );
+    if (addLibraryButton) {
+      try {
+        await api(
+          "/api/library/questions/" + addLibraryButton.dataset.addLibrary,
+          {
+            method: "PATCH",
+            body: JSON.stringify({ in_library: true })
+          }
+        );
+        alert("已经加入题库。");
+        await loadSurvey();
+      } catch (error) {
+        alert(error.message);
+      }
       return;
     }
     const deleteButton = event.target.closest("button[data-delete]");

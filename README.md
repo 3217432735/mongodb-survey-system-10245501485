@@ -1,6 +1,6 @@
 # 基于 MongoDB 的在线问卷系统
 
-当代数据管理系统大作业一（第一阶段）
+当代数据管理系统大作业一（第二阶段）
 
 姓名：银启行　学号：10245501485
 
@@ -19,6 +19,20 @@
 - 按题目统计选项次数、回答人数、数字平均值和文本答案
 - 接口测试覆盖注册、权限、校验、跳转、提交和统计
 
+## 第二阶段新增功能
+
+- 题目库：创建常用题目，并从题库选择题目加入问卷
+- 题目共享：把题目共享给指定用户，共享用户可以在自己的问卷中使用
+- 不可变版本：每次更新题目生成新版本，历史版本不会被覆盖
+- 问卷快照：问卷保存所选题目版本的副本，题库后续变化不影响已发布问卷
+- 版本历史与恢复：查看版本来源链，并基于旧版本生成新的当前版本
+- 使用情况：查看题目被哪些问卷使用，以及各问卷引用的版本
+- 跨问卷统计：汇总当前用户多份问卷中同一题目的选项、文本和数字结果
+
+第二阶段继续使用原有的 `questions` 集合保存问卷题目快照，并新增
+`question_roots` 和 `question_versions` 管理题目身份、共享关系及版本。
+旧题目会在启动时自动建立题目根记录，不修改已有答卷。
+
 ## 运行方法
 
 需要先启动 MongoDB。默认连接 `mongodb://127.0.0.1:27017`，数据库名是 `survey_system`。
@@ -27,13 +41,16 @@
 cd survey-mongodb
 npm install
 npm run seed
+npm run migrate:phase2
 npm start
 ```
+
+应用启动时会自动执行幂等迁移，也可以手动运行 `npm run migrate:phase2`。
 
 打开 <http://localhost:3000>。
 
 管理页里的“填写链接”会自动使用项目当前配置的公网地址，例如
-`https://stores-merit-tutorials-reprints.trycloudflare.com/survey/...`。
+`https://livecam-reduced-calculators-stockholm.trycloudflare.com/survey/...`。
 填写者不需要与创建者连接同一个局域网，可直接通过互联网打开。
 
 演示数据里的账号：
@@ -52,7 +69,7 @@ $env:MONGODB_URI="mongodb://127.0.0.1:27017"
 $env:MONGODB_DB="survey_system"
 $env:PORT="3000"
 # 可选，使用固定公网域名或隧道时设置
-$env:PUBLIC_ORIGIN="https://stores-merit-tutorials-reprints.trycloudflare.com"
+$env:PUBLIC_ORIGIN="https://livecam-reduced-calculators-stockholm.trycloudflare.com"
 ```
 
 ## 测试
@@ -74,6 +91,11 @@ npm test
 | `src/stats.js` | 用聚合管道做统计 |
 | `public/` | 登录、问卷列表、编辑、填写、统计页面 |
 | `test/api.test.js` | 接口自动测试 |
+| `test/phase2.test.js` | 题目库、版本、共享和跨问卷统计测试 |
+| `public/questions.html` | 题目库管理页面 |
+| `src/routes/library.js` | 题库、共享、版本和使用情况接口 |
+| `src/library.js` | 题目快照、版本链和跨问卷统计逻辑 |
+| `scripts/migrate-phase2.js` | 第二阶段旧数据迁移脚本 |
 | `scripts/seed-demo.js` | 写入演示账号和问卷 |
 | `scripts/screenshots.js` | 生成报告用的页面截图 |
 | `docs/` | 系统说明、数据库设计、API、测试和 AI 使用记录 |
@@ -87,7 +109,9 @@ npm test
 4. 匿名答卷不保存 `respondent_id` 和用户名。如果问卷限制每人填一次，会保存一个由用户编号和问卷编号算出的 HMAC 值，只用来判重，不能直接看出是谁。
 5. 统计结果是在查询时用 MongoDB 聚合管道实时计算的，没有另外存一份统计表。
 6. `/api/app-info` 优先生成配置好的公网地址。当前默认使用
-   `https://stores-merit-tutorials-reprints.trycloudflare.com`，其他网络可以直接访问填写链接。
+   `https://livecam-reduced-calculators-stockholm.trycloudflare.com`，其他网络可以直接访问填写链接。
+7. 问卷题目保存的是题目版本快照。创建新版本只改变题库当前版本，不会回头修改旧问卷。
+8. 题目在不同版本之间保持题型不变；需要更换题型时，应新建题目根记录。
 
 ## 临时公网访问
 

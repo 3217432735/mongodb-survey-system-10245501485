@@ -11,6 +11,7 @@
     <div class="topbar-inner">
       <a class="brand" href="/dashboard.html">问卷小站</a>
       <div class="topbar-right">
+        <a href="/questions.html">题目库</a>
         <span id="currentUser"></span>
         <button class="btn-small" id="logoutButton" type="button">退出</button>
       </div>
@@ -62,6 +63,28 @@
       <div class="inline-note hidden" id="lockedNote">
         问卷已经发布，题目和基本设置不能再修改。这样可以保证已经收到的答案和题目对应。
       </div>
+    </section>
+
+    <section class="card" id="libraryPickerCard">
+      <h2>从题目库添加</h2>
+      <div class="row">
+        <label>
+          <span class="label-text">选择题目</span>
+          <select id="libraryQuestionSelect">
+            <option value="">请选择题库中的题目</option>
+          </select>
+        </label>
+        <label>
+          <span class="label-text">选择版本</span>
+          <select id="libraryVersionSelect"></select>
+        </label>
+        <button class="btn-primary" type="button" id="addLibraryQuestionButton">
+          添加到当前问卷
+        </button>
+      </div>
+      <p class="hint">
+        添加后会复制所选版本作为当前问卷的题目快照，之后题库更新不会改动这份问卷。
+      </p>
     </section>
 
     <section class="grid-two" id="editorArea">
@@ -150,6 +173,17 @@
               <button type="button" class="btn-small" id="addRuleButton">添加规则</button>
             </div>
             <p class="hint">按顺序匹配，第一条满足的规则生效。只能跳到后面的题目。</p>
+          </div>
+
+          <div class="inline-note hidden" id="libraryVersionFields">
+            <div id="libraryVersionInfo"></div>
+            <label class="check-line">
+              <input type="checkbox" id="createLibraryVersion">
+              同时创建题库新版本
+            </label>
+            <div class="hint">
+              不勾选时，本次修改只保存在当前问卷中，这道题会转为独立副本。
+            </div>
           </div>
 
           <div class="actions" style="margin-top: 16px;">

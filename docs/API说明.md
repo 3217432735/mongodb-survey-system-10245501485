@@ -46,7 +46,7 @@
 
 ```json
 {
-  "share_origin": "https://stores-merit-tutorials-reprints.trycloudflare.com"
+  "share_origin": "https://livecam-reduced-calculators-stockholm.trycloudflare.com"
 }
 ```
 
@@ -289,4 +289,47 @@
 | 404 | 问卷不存在或无权访问 | 编号错误或不是自己的问卷 |
 | 409 | 你已经填写过这份问卷 | 限填一次 |
 | 500 | 服务器内部错误 | 未处理的异常 |
+
+## 8. 第二阶段题目库接口
+
+以下接口需要登录。
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET | `/api/library/questions` | 获取自己有权限使用的题目根和版本 |
+| POST | `/api/library/questions` | 新建题目并加入题库 |
+| GET | `/api/library/questions/:id` | 获取题目详情和完整版本历史 |
+| PATCH | `/api/library/questions/:id` | 修改题目是否加入题库 |
+| POST | `/api/library/questions/:id/versions` | 创建新的题目版本 |
+| POST | `/api/library/questions/:id/versions/:versionId/restore` | 基于旧版本创建新的当前版本 |
+| POST | `/api/library/questions/:id/share` | 按用户名共享题目 |
+| DELETE | `/api/library/questions/:id/share/:userId` | 取消共享 |
+| GET | `/api/library/questions/:id/usage` | 查看题目被哪些问卷使用 |
+| GET | `/api/library/questions/:id/stats` | 跨当前用户问卷统计该题 |
+| POST | `/api/surveys/:id/questions/from-library` | 把指定题目版本加入问卷草稿 |
+
+新建或创建版本时，题目内容字段与普通题目一致，但不传 `jump_rules`。
+同一题目根下的版本必须保持题型一致。
+
+加入问卷请求：
+
+```json
+{
+  "root_id": "670000000000000000000001",
+  "version_id": "670000000000000000000002"
+}
+```
+
+不传 `version_id` 时使用题目根当前版本。
+
+共享请求：
+
+```json
+{
+  "username": "xiaoming"
+}
+```
+
+跨问卷统计返回 `survey_count`、`version_count`、`total_responses` 和 `answered_count`；
+选项题额外返回 `options`，数字题返回 `average`、`min`、`max`，文本题返回 `values`。
 

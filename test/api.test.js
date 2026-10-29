@@ -74,7 +74,7 @@ test("基于 MongoDB 的问卷系统接口测试", async (t) => {
     const data = await alice.get("/api/app-info");
     assert.equal(
       data.share_origin,
-      "https://stores-merit-tutorials-reprints.trycloudflare.com"
+      "https://livecam-reduced-calculators-stockholm.trycloudflare.com"
     );
     assert.doesNotMatch(data.share_origin, /localhost|127\.0\.0\.1/);
   });

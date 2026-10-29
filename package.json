@@ -8,7 +8,8 @@
     "start": "node app.js",
     "dev": "node --watch app.js",
     "seed": "node scripts/seed-demo.js",
-    "test": "node --test test/api.test.js",
+    "migrate:phase2": "node scripts/migrate-phase2.js",
+    "test": "node --test test/api.test.js test/phase2.test.js",
     "screenshots": "node scripts/screenshots.js"
   },
   "dependencies": {

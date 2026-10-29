@@ -13,12 +13,20 @@ const {
   normalizeQuestion
 } = require("../validation");
 const { getSurveyStats } = require("../stats");
+const {
+  canAccessRoot,
+  createRootWithVersion,
+  questionContent,
+  reviseRoot
+} = require("../library");
 
 module.exports = function createSurveyRouter(db) {
   const router = express.Router();
   const surveys = db.collection("surveys");
   const questions = db.collection("questions");
   const responses = db.collection("responses");
+  const questionRoots = db.collection("question_roots");
+  const questionVersions = db.collection("question_versions");
 
   router.use(requireLogin);
 
@@ -124,6 +132,36 @@ module.exports = function createSurveyRouter(db) {
       const responseCount = await responses.countDocuments({
         survey_id: survey._id
       });
+      const rootIds = [
+        ...new Set(
+          list
+            .map((item) => item.library_root_id)
+            .filter(Boolean)
+            .map(String)
+        )
+      ].map((id) => new ObjectId(id));
+      const versionIds = [
+        ...new Set(
+          list
+            .map((item) => item.library_version_id)
+            .filter(Boolean)
+            .map(String)
+        )
+      ].map((id) => new ObjectId(id));
+      const rootList = rootIds.length
+        ? await questionRoots.find({ _id: { $in: rootIds } }).toArray()
+        : [];
+      const versionList = versionIds.length
+        ? await questionVersions
+            .find({ _id: { $in: versionIds } })
+            .toArray()
+        : [];
+      const rootMap = new Map(
+        rootList.map((item) => [String(item._id), item])
+      );
+      const versionMap = new Map(
+        versionList.map((item) => [String(item._id), item])
+      );
       res.json({
         survey: {
           id: survey._id.toString(),
@@ -154,7 +192,24 @@ module.exports = function createSurveyRouter(db) {
           min_value: item.min_value,
           max_value: item.max_value,
           integer_only: item.integer_only,
-          jump_rules: item.jump_rules
+          jump_rules: item.jump_rules,
+          library_root_id: item.library_root_id
+            ? item.library_root_id.toString()
+            : null,
+          library_version_id: item.library_version_id
+            ? item.library_version_id.toString()
+            : null,
+          library_version_no: versionMap.get(
+            String(item.library_version_id)
+          )?.version_no ?? null,
+          library_root_owner_id: rootMap.get(
+            String(item.library_root_id)
+          )?.owner_id?.toString() ?? null,
+          library_in_library: rootMap.get(
+            String(item.library_root_id)
+          )?.in_library === true,
+          derived_from_library_version_id:
+            item.derived_from_library_version_id?.toString() ?? null
         }))
       });
     })
@@ -197,9 +252,19 @@ module.exports = function createSurveyRouter(db) {
       }
       const count = await questions.countDocuments({ survey_id: survey._id });
       const normalized = normalizeQuestion(req.body, count + 1, count + 1);
+      const ownerId = new ObjectId(req.session.user.id);
+      const { root, version } = await createRootWithVersion(
+        db,
+        ownerId,
+        questionContent(normalized),
+        { inLibrary: req.body.save_to_library === true }
+      );
       const doc = {
         survey_id: survey._id,
         ...normalized,
+        library_root_id: root._id,
+        library_version_id: version._id,
+        derived_from_library_version_id: null,
         created_at: new Date()
       };
       const result = await questions.insertOne(doc);
@@ -210,6 +275,9 @@ module.exports = function createSurveyRouter(db) {
       res.status(201).json({
         question: {
           id: result.insertedId.toString(),
+          library_root_id: root._id.toString(),
+          library_version_id: version._id.toString(),
+          library_version_no: version.version_no,
           ...normalized
         }
       });
@@ -237,12 +305,119 @@ module.exports = function createSurveyRouter(db) {
       const count = await questions.countDocuments({ survey_id: survey._id });
       const normalized = normalizeQuestion(req.body, question.order, count);
       const { order, ...update } = normalized;
+      const previousContent = questionContent(question);
+      const nextContent = questionContent(normalized);
+      const contentChanged =
+        JSON.stringify(previousContent) !== JSON.stringify(nextContent);
+
+      if (contentChanged && question.library_root_id) {
+        const root = await questionRoots.findOne({
+          _id: question.library_root_id
+        });
+        const shouldCreateVersion = req.body.create_library_version === true;
+        if (shouldCreateVersion && root) {
+          if (String(root.owner_id) === String(req.session.user.id)) {
+            const version = await reviseRoot(
+              db,
+              root,
+              nextContent,
+              new ObjectId(req.session.user.id)
+            );
+            update.library_root_id = root._id;
+            update.library_version_id = version._id;
+            update.derived_from_library_version_id = null;
+          } else if (canAccessRoot(root, req.session.user.id)) {
+            const forked = await createRootWithVersion(
+              db,
+              new ObjectId(req.session.user.id),
+              nextContent,
+              {
+                inLibrary: true,
+                derivedFromVersionId: question.library_version_id
+              }
+            );
+            update.library_root_id = forked.root._id;
+            update.library_version_id = forked.version._id;
+            update.derived_from_library_version_id = null;
+          }
+        } else {
+          update.library_root_id = null;
+          update.library_version_id = null;
+          update.derived_from_library_version_id =
+            question.library_version_id || null;
+        }
+      }
       await questions.updateOne({ _id: question._id }, { $set: update });
       await surveys.updateOne(
         { _id: survey._id },
         { $set: { updated_at: new Date() } }
       );
       res.json({ ok: true });
+    })
+  );
+
+  router.post(
+    "/surveys/:id/questions/from-library",
+    asyncHandler(async (req, res) => {
+      const survey = await findOwnedSurvey(req);
+      if (survey.status !== "draft") {
+        return res.status(409).json({ error: "问卷发布后不能添加题目" });
+      }
+      const rootId = toObjectId(req.body.root_id);
+      if (!rootId) throw new InputError("题库题目编号不正确");
+      const root = await questionRoots.findOne({ _id: rootId });
+      if (!root || !canAccessRoot(root, req.session.user.id)) {
+        const error = new Error("题目不存在或无权访问");
+        error.status = 404;
+        throw error;
+      }
+
+      let version;
+      if (req.body.version_id) {
+        const versionId = toObjectId(req.body.version_id);
+        if (!versionId) throw new InputError("题目版本编号不正确");
+        version = await questionVersions.findOne({
+          _id: versionId,
+          root_id: root._id
+        });
+      } else {
+        version = await questionVersions.findOne({
+          _id: root.current_version_id
+        });
+      }
+      if (!version) {
+        const error = new Error("题目版本不存在");
+        error.status = 404;
+        throw error;
+      }
+
+      const count = await questions.countDocuments({ survey_id: survey._id });
+      const snapshot = {
+        survey_id: survey._id,
+        order: count + 1,
+        ...questionContent(version),
+        jump_rules: [],
+        library_root_id: root._id,
+        library_version_id: version._id,
+        derived_from_library_version_id: null,
+        created_at: new Date()
+      };
+      const result = await questions.insertOne(snapshot);
+      await surveys.updateOne(
+        { _id: survey._id },
+        { $set: { question_count: count + 1, updated_at: new Date() } }
+      );
+      res.status(201).json({
+        question: {
+          id: result.insertedId.toString(),
+          order: snapshot.order,
+          library_root_id: root._id.toString(),
+          library_version_id: version._id.toString(),
+          library_version_no: version.version_no,
+          title: version.title,
+          type: version.type
+        }
+      });
     })
   );
 
